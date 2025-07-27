@@ -28,13 +28,14 @@ class TriviaTestCase(unittest.TestCase):
         # Bind the app to the current context and create all tables
         with self.app.app_context():
             db.create_all()
-            category = Category(type='Science')
-            db.session.add(category)
+            science = Category(type='Science')
+            art = Category(type='Art')
+            db.session.add_all([science, art])
             db.session.commit()
             q1 = Question(question='Test question 1', answer='Test answer 1',
-                           category=category.id, difficulty=1)
+                           category=art.id, difficulty=1)
             q2 = Question(question='Test question 2', answer='Test answer 2',
-                           category=category.id, difficulty=2)
+                           category=science.id, difficulty=2)
             q1.insert()
             q2.insert()
 
@@ -93,6 +94,132 @@ class TriviaTestCase(unittest.TestCase):
         data = json.loads(res.data)
 
         self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+
+    def test_get_categories_endpoint(self):
+        """TEST GET for /categories endpoint"""
+        res = self.client.get('/categories')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(len(data['categories']))
+
+    def test_post_questions_creation(self):
+        """TEST POST for /questions creation"""
+        new_question = {
+            "question": "What is the capital of California?",
+            "answer": "Sacramento",
+            "category": 1,
+            "difficulty": 2
+        }
+        res = self.client.post('/questions', json=new_question)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['created'])
+
+
+    def test_post_questions_creation_400(self):
+        """TEST POST for /questions creation 400, 404 and 422 errors"""
+        incomplete_question = {
+            "question": "What is the capital of California?",
+            "answer": "Sacramento"
+        }
+        res = self.client.post('/questions', json=incomplete_question)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data['success'], False)
+
+
+    def test_search_questions(self):
+        """TEST POST for /questions search"""
+        search_term = {
+            "searchTerm": "Test"
+        }
+        res = self.client.post('/questions', json=search_term)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(len(data['questions']))
+
+
+    def test_search_questions_invalid_term(self):
+        """TEST POST for /questions search failures"""
+        non_search_term = {
+            "searchTerm": "nonexistentterm"
+        }
+        res = self.client.post('/questions', json=non_search_term)
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(len(data['questions']), 0)
+
+    def test_search_questions_malformed_request(self):
+        """TEST POST /questions search with invalid data structure"""
+        invalid_search = {
+            "invalidKey": "some value"
+        }
+        
+        res = self.client.post('/questions', json=invalid_search)
+        data = json.loads(res.data)
+        
+        self.assertEqual(res.status_code, 400)
+        self.assertEqual(data['success'], False)
+
+    def test_categories_question_filter(self):
+        """TEST GET for /categories/category_id/questions filter"""
+        res = self.client.get('/categories/1/questions')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(len(data['questions']))
+       
+
+    def test_categories_question_filter_404_errors(self):
+        """TEST GET for /categories/category_id/questions nonexistent category"""
+        res = self.client.get('/categories/9999/questions')  # Category that doesn't exist
+        data = json.loads(res.data)
+        
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'resource not found')
+
+    def test_play_quiz_with_category(self):
+        """Test POST /quizzes with specific category"""
+        with self.app.app_context():
+            category = Category.query.first()
+            category_id = category.id
+        
+        quiz_data = {
+            "previous_questions": [],
+            "quiz_category": {"type": "Science", "id": category_id}
+        }
+        
+        res = self.client.post('/quizzes', json=quiz_data)
+        data = json.loads(res.data)
+        
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertTrue(data['question'])
+        self.assertEqual(data['question']['category'], category_id)
+
+    def test_quizz_invalid_key(self):
+        """Test POST /quizzes with malformed request"""
+        quiz_data = {
+            "previous_questions": [],
+            "quiz_category": {"type": "Science", "id": "invalid_id_type"}  # String instead of int
+        }
+        
+        res = self.client.post('/quizzes', json=quiz_data)
+        data = json.loads(res.data)
+        
+        self.assertEqual(res.status_code, 422)
         self.assertEqual(data['success'], False)
 
 # Make the tests conveniently executable

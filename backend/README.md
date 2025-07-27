@@ -102,3 +102,176 @@ createdb trivia_test
 psql trivia_test < trivia.psql
 python test_flaskr.py
 ```
+
+### API Endpoints Documentation
+
+### GET `/categories`
+- **Purpose**: Fetches all available trivia categories
+- **Request Arguments**: None
+- **Returns**: Object containing success status, categories dictionary, and total count
+- **Example Response**:
+```json
+{
+  "success": true,
+  "categories": {
+    "1": "Science",
+    "2": "Art", 
+    "3": "Geography"
+  },
+  "total": 3
+} 
+```
+
+
+### GET `/questions`
+- **Purpose**: Fetches all questions with pagination
+- **Request Arguments**: None
+- **Returns**: Object containing success status, formatted categories dictionary, a questions body array and total count of questions
+- **Example Response**:
+```json
+{
+  "categories": {
+    "1": "Science", 
+    "2": "Art", 
+    "3": "Geography", 
+    "4": "History", 
+    "5": "Entertainment", 
+    "6": "Sports"
+  }, 
+  "current_category": null, 
+  "questions": [
+    {
+      "answer": "Apollo 13", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 2, 
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }, 
+    {
+      "answer": "Tom Cruise", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 4, 
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    }, 
+  ], 
+  "success": true, 
+  "total_questions": 20
+}
+```
+
+### DELETE `/questions/question_id`
+- **Purpose**: deletes question using question ID
+- **Request Arguments**: question_id
+- **Returns**: Object containing success status, and deleted question ID
+- **Example Response**:
+```json
+{
+  "deleted": 26, 
+  "success": true
+}
+```
+
+### POST `/questions` (Create)
+- **Purpose**: Creates a new trivia question
+- **Request Arguments**: JSON body with:
+  - `question` (string): The question text
+  - `answer` (string): The answer text  
+  - `category` (integer): Category ID
+  - `difficulty` (integer): Difficulty level 1-4
+- **Returns**: Object with success status and created question ID
+- **Example Request**:
+```json
+{
+  "question": "What is the capital of France?",
+  "answer": "Paris",
+  "category": 3,
+  "difficulty": 2
+}
+```
+- **Example Response**:
+```json
+{
+  "success": true,
+  "created": 24
+}
+```
+
+### POST `/questions` (Search)
+
+- **Purpose**: Search for questions containing a text string
+- **Request** Arguments: JSON body with:
+  - `searchTerm` (string): Text to search for in questions
+
+- **Returns**: Object with matching questions, total count, and categories
+- **Example Response**:
+```json
+{
+  "success": true,
+  "questions": [
+    {
+      "id": 6,
+      "question": "What was the title of the 1990 fantasy...",
+      "answer": "Edward Scissorhands",
+      "category": 5,
+      "difficulty": 3
+    }
+  ],
+  "total_questions": 1,
+  "current_category": null,
+  "categories": { ... }
+}
+```
+
+### GET `/categories/category_id/questions`
+
+- **Purpose**: Fetches questions based on category
+- **Request Arguments**: category_id
+- **Request** Arguments: JSON body with:
+- **Returns**: Object containing success status, current category, a questions body array and total count of questions
+- **Example Response**:
+```json
+{
+  "current_category": "Art", 
+  "questions": [
+    {
+      "answer": "Escher", 
+      "category": 2, 
+      "difficulty": 1, 
+      "id": 16, 
+      "question": "Which Dutch graphic artist\u2013initials M C was a creator of optical illusions?"
+    }, 
+    {
+      "answer": "Mona Lisa", 
+      "category": 2, 
+      "difficulty": 3, 
+      "id": 17, 
+      "question": "La Giaconda is better known as what?"
+    }, 
+    {...}
+  ], 
+  "success": true, 
+  "total_questions": 4
+}
+```
+
+### POST `/quizzes`
+- **Purpose**: Fetches questions to play game, using category filter or returning all in random order
+- **Request Arguments**:
+  - `previous_questions` (array): array of previous question IDs
+  - `quiz_category` (int): category ID  
+- **Request** Arguments: JSON body with:
+- **Returns**: Object containing success status and current question
+- **Example Response**:
+```json
+{
+  "question": {
+    "answer": "Apollo 13", 
+    "category": 5, 
+    "difficulty": 4, 
+    "id": 2, 
+    "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+  }, 
+  "success": true
+}
+```

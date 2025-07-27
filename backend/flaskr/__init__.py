@@ -63,11 +63,6 @@ def create_app(test_config=None):
                 "categories": formatted_categories,
                 "total": len(formatted_categories),
             }
-            # {
-            #     "success": True,
-            #     "categories": formatted_categories,
-            #     "total": len(formatted_categories),
-            # }
         )
 
 
@@ -200,21 +195,18 @@ def create_app(test_config=None):
 
     @app.route('/categories/<int:category_id>/questions', methods=["GET"])
     def get_questions_by_category(category_id):
-        try:
-            questions = Question.query.filter(Question.category == category_id).all()
-            current_questions = pagination_helper(request, questions)
+        questions = Question.query.filter(Question.category == category_id).all()
+        current_questions = pagination_helper(request, questions)
 
-            category = Category.query.filter(Category.id == category_id).one_or_none()
-            if category is None:
-                abort(404)
-            return jsonify({
-                    "success": True,
-                    "questions": current_questions,
-                    "total_questions": len(questions),
-                    "current_category": category.type,
-                })
-        except Exception as e:
-            abort(422)
+        category = Category.query.filter(Category.id == category_id).one_or_none()
+        if category is None:
+            abort(404)
+        return jsonify({
+                "success": True,
+                "questions": current_questions,
+                "total_questions": len(questions),
+                "current_category": category.type,
+            })
 
     """
     @DONE:
@@ -232,7 +224,6 @@ def create_app(test_config=None):
     def play_quiz():
         body = request.get_json()
         print("DEBUG - full request body: ", body)
-        
         
         previous_questions = body.get('previous_questions', [])
         quiz_category = body.get('quiz_category', None)
