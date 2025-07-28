@@ -1,8 +1,8 @@
 import os
 import unittest
-
 from flaskr import create_app
 from models import db, Question, Category
+from settings import DB_USER, DB_PASSWORD, DB_HOST
 import json
 
 
@@ -12,10 +12,9 @@ class TriviaTestCase(unittest.TestCase):
     def setUp(self):
         """Define test variables and initialize app."""
         self.database_name = "trivia_test"
-        self.database_user = "postgres"
-        self.database_password = "password"
-        self.database_host = "localhost:5432"
-        self.database_path = f"postgresql://{self.database_user}:{self.database_password}@{self.database_host}/{self.database_name}"
+        
+        self.database_path = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{self.database_name}"
+        #self.database_path = f"postgresql://{self.database_user}:{self.database_password}@{self.database_host}/{self.database_name}"
 
         # Create app with the test configuration
         self.app = create_app({
@@ -48,7 +47,7 @@ class TriviaTestCase(unittest.TestCase):
             db.drop_all()
 
     """
-    TODO
+    DONE
     Write at least one test for each test for successful operation and for expected errors.
     """
 
